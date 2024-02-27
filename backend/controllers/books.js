@@ -74,8 +74,8 @@ exports.getAllBooks = (req, res, next) => {
     .catch(error => res.status(400).json({ error }));
   };
 
-exports.addRating = async (req, res) => {
-Book.findByIdAndUpdate({_id: req.params.id}) // On récupère l'id du livre noté
+exports.addRating = (req, res, next) => {
+Book.findOne({_id: req.params.id}) // On récupère l'id du livre noté
 .then(book => { // On vérifie que l'utilisateur n'a pas déjà noté le livre || On vérifie que la note est comprise entre 1 et 5
     if(book.ratings.some(rating => rating.userId === req.userId) || (req.body.grade < 1 || req.body.grade > 5)){ 
         res.status(500).json({ error })
@@ -97,6 +97,17 @@ Book.findByIdAndUpdate({_id: req.params.id}) // On récupère l'id du livre not�
 .catch(error => res.status(404).json({ error }));
 };
 
+exports.bestRating = (req, res) => {
+    Book.find()
+        .sort({ averageRating: -1 }) // Tri des notes par ordre décroissant
+        .limit(3) // Maximum 3 livres
+        .then(books => {
+            res.status(200).json(books);
+        })
+        .catch(error => {
+            res.status(500).json({ error });
+        });
+};
 
 
     /*     Les méthodes de votre modèle Book permettent d'interagir avec la base de données :
