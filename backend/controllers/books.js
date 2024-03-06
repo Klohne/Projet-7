@@ -1,13 +1,13 @@
 const Book = require('../models/Book');
 const fs = require('fs');
 
-
+// Ajout d'un livre
 exports.addBook = (req, res, next) => {
-    const bookratingInfoect = JSON.parse(req.body.book);
-    delete bookratingInfoect._id;
-    delete bookratingInfoect._userId;
-    const book = new Book({
-        ...bookratingInfoect,
+    const bookObject = JSON.parse(req.body.book); // Corps de la requête => json
+    delete bookObject._id; // Suppression de l'id généré par le front
+    delete bookObject._userId;
+    const book = new Book({ // Création d'un nouveau Book
+        ...bookObject,
         userId: req.auth.userId,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     });
@@ -17,21 +17,21 @@ exports.addBook = (req, res, next) => {
     .catch(error => { res.status(400).json( { error })})
 };
 
-// Modification de l'ratingInfoet // On gère ici deux cas : Si l'utilisateur a transmis un fichier ou non lors de la modification
+// Modification de l'objet // On gère ici deux cas : Si l'utilisateur a transmis un fichier ou non lors de la modification
 exports.modifyBook = (req, res, next) => {
-    const bookratingInfoect = req.file ? { // On regarde s'il y a un champ 'file' dans l'ratingInfoet requête
+    const bookObject = req.file ? { // On regarde s'il y a un champ 'file' dans bookObject requête
         ...JSON.parse(req.body.book), // Si oui, on parse la chaine de caractères dans un json et on crée une URL au fichier image
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    } : { ...req.body }; // Si pas de 'file' on récupère directement l'ratingInfoet dans le corps de la requête
+    } : { ...req.body }; // Si pas de 'file' on récupère directement l'objet dans le corps de la requête
 
-    delete bookratingInfoect._userId;
-    Book.findOne({_id: req.params.id}) // On récupère l'ratingInfoet dans la BDD pour vérifier que l'utilisateur qui cherche à le modifier soit bien celui qui l'a créé
+    delete bookObject._userId;
+    Book.findOne({_id: req.params.id}) // On récupère l'objet dans la BDD pour vérifier que l'utilisateur qui cherche à le modifier soit bien celui qui l'a créé
         .then((book) => {
-            if (book.userId != req.auth.userId) { // Si le userId de la BDD est différent de celui qui vient du token, ça veut dire que qqun tente de modifier un ratingInfoet qui ne lui appartient pas
+            if (book.userId != req.auth.userId) { // Si le userId de la BDD est différent de celui qui vient du token, ça veut dire que qqun tente de modifier un objet qui ne lui appartient pas
                 res.status(401).json({message: "Non-autorisé" });
-            } else { //  ({enregistrement à mettre à jour}, {avec quel ratingInfoet}
-                Book.updateOne({_id: req.params.id}, {...bookratingInfoect, _id: req.params.id})
-                .then(() => res.status(200).json({message: "ratingInfoet modifié"}))
+            } else { //  ({enregistrement à mettre à jour}, {avec quel objet}
+                Book.updateOne({_id: req.params.id}, {...bookObject, _id: req.params.id})
+                .then(() => res.status(200).json({message: "objet modifié"}))
                 .catch(error => res.status(401).json({ error }));
             }
         })
@@ -40,9 +40,9 @@ exports.modifyBook = (req, res, next) => {
         })
 };
 
-//Suppression d'un ratingInfoet 
+//Suppression d'un objet 
 exports.deleteBook = (req, res, next) => {
-    Book.findOne({_id: req.params.id}) // On récupère l'ratingInfoet dans la BDD
+    Book.findOne({_id: req.params.id}) // On récupère l'objet dans la BDD
     .then(book => {
         if (book.userId != req.auth.userId){ // On vérifie que le userId enregistré en BDD correspond à celui qui vient du token
             res.status(401).json({message: "Non-autorisé"});
@@ -60,14 +60,14 @@ exports.deleteBook = (req, res, next) => {
     })
 };
 
-// Ceci est la requête GET qui va afficher les ratingInfoets en fonction de l'ID récupérée (:id), elle les sélectionne donc de façon individuelle
+// Ceci est la requête GET qui va afficher les objets en fonction de l'ID récupérée (:id), elle les sélectionne donc de façon individuelle
 exports.getOneBook = (req, res, next) => {
     Book.findOne({ _id: req.params.id }) // Ici, on va chercher (.findOne) le Book ayant le même id (_id) que celui présent dans l'URL / le paramètre de requête (req.params.id)
         .then(book => res.status(200).json(book)) // On renvoie ce Book au frontend
         .catch(error => res.status(404).json({ error })); // Code 404 = page non trouvée / Book non trouvé
 };
 
-// Ceci est la requête GET générale, qui permet de récupérer TOUS les ratingInfoets de la BDD. On ne peut pas récupérer les ratingInfoets individuellement avec cette requête.
+// Ceci est la requête GET générale, qui permet de récupérer TOUS les objets de la BDD. On ne peut pas récupérer les objets individuellement avec cette requête.
 exports.getAllBooks = (req, res, next) => {
     Book.find() // On récupère le tableau de tous les 'books' contenus dans Book
     .then(books => res.status(200).json(books)) // On les renvoie en réponse 200 ( Code 200 = requête client faite avec succès)
@@ -87,7 +87,7 @@ Book.findOne({_id: req.params.id}) // On récupère l'id du livre noté
 
         const numOfRatings = book.ratings.length; // Nombre de notes sur le livre
         const ratingsTotal = book.ratings.reduce((acc, rating) => acc + rating.grade, 0); // On additione toutes les notes du livre
-        book.averageRating = Math.round((ratingsTotal / numOfRatings) * 10) / 10; // On calcule la moyenne des notes
+        book.averageRating = (ratingsTotal / numOfRatings).toFixed(1); // On calcule la moyenne des notes
 
         book.save()
         .then(book => {res.json(book)})
