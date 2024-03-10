@@ -9,7 +9,7 @@ exports.addBook = (req, res, next) => {
     const book = new Book({ // Création d'un nouveau Book
         ...bookObject,
         userId: req.auth.userId,
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        imageUrl: `${req.protocol}://projet-7-yrus.onrender.com/images/${req.file.filename}`
     });
   
     book.save()
