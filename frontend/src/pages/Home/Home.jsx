@@ -18,6 +18,7 @@ function Home() {
         setBooks(data);
         setLoading(false);
       }
+      console.log(data)
     }
     getBooksList();
   }, []);
