@@ -4,12 +4,14 @@ const fs = require('fs');
 // Ajout d'un livre
 exports.addBook = (req, res, next) => {
     const bookObject = JSON.parse(req.body.book); // Corps de la requête => json
-    delete bookObject._id; // Suppression de l'id généré par le front
+    // On vient supprimer les ID générés par le client pour que tout soit généré par le serveur : plus sécurisé
+    delete bookObject._id;
     delete bookObject._userId;
     const book = new Book({ // Création d'un nouveau Book
         ...bookObject,
         userId: req.auth.userId,
-        imageUrl: `${req.protocol}://projet-7-yrus.onrender.com/images/${req.file.filename}`
+        imageUrl: `${req.protocol}://projet-7-yrus.onrender.com/images/${req.file.filename}` // Attribution d'une nouvelle URL à l'image
+                    //https                 nom de dommaine     dossier || nom de fichier
     });
   
     book.save()
@@ -21,7 +23,7 @@ exports.addBook = (req, res, next) => {
 exports.modifyBook = (req, res, next) => {
     const bookObject = req.file ? { // On regarde s'il y a un champ 'file' dans bookObject requête
         ...JSON.parse(req.body.book), // Si oui, on parse la chaine de caractères dans un json et on crée une URL au fichier image
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        imageUrl: `${req.protocol}://projet-7-yrus.onrender.com/images/${req.file.filename}`
     } : { ...req.body }; // Si pas de 'file' on récupère directement l'objet dans le corps de la requête
 
     delete bookObject._userId;
