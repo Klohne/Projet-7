@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
   sharp(req.file.buffer) // On va chercher le fichier dans la mémoire tampon
     .resize({ height: 600 }) // Nouvelle hauteur
     .webp({ quality: 90 }) // Conversion en webp + qualité post conversion
-    .toFile(outputPath, (error) => {
+    .toFile(outputPath, (error) => { // Sauvegarde de l'image
       if (error) {
         return res.status(500).json({ error });
       }
